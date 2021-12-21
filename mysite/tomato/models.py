@@ -56,6 +56,7 @@ class RoomType(models.Model):
     description = models.CharField(max_length=128)
     # area = models.DecimalField()
     base_price = models.IntegerField()
+    price = models.IntegerField(default=1)
     
     def __str__(self):
         return "{} {} {}".format(self.name, self.base_price, self.description)

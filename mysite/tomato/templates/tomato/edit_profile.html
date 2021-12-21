@@ -1,0 +1,74 @@
+{% extends "tomato/base_generic.html" %}
+
+{% block title %}
+    <title> Dashboard - Tomato </title>
+{% endblock title %}
+
+
+{% block content %}
+
+<form action="{% url 'tomato:edit_profile' %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+        <h1 class="h1">Edit Profile</h1>
+        {% if message %}
+            {% for msg in message %}
+                {% if msg != 'Infomation updated!' %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i><strong> {{ msg }}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% else %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill"></i><strong> {{ msg }}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        <table class="table table-hover table-sm align-middle table-light">
+            <thead></thead>
+            <tr class="align-middle">
+                <td>Contact</td>
+                <td><input type="text" class="form-control" name="contact" value="{{ uu.contact }}"></td>
+            </tr>
+            <tr class="align-middle">
+                <td>Email</td>
+                <td><input type="text" class="form-control" name="email" value="{{ uu.email }}"></td>
+            </tr>
+            <tr class="align-middle">
+                <td>Name</td>
+                <td><input type="text" class="form-control" name="name" value="{{ uu.name }}"/></td>
+            </tr>
+            <tr class="align-middle">
+                <td>Username</td>
+                <td><input type="text" class="form-control" name="username" value="{{ uu.username }}"/></td>
+            </tr>
+            <tr class="align-middle">
+                <td>Password</td>
+                <td><input type="password" class="form-control" name="password1" value="{{ uu.password }}"/></td>
+            </tr>
+            <tr class="align-middle">
+                <td>Confirm password</td>
+                <td><input type="password" class="form-control" name="password2" value="{{ uu.password }}"/></td>
+            </tr>
+            <tr class="align-middle">
+                <td>Identity</td>
+                <td><input type="text" class="form-control" name="identity" value="{{ uu.identity }}"></td>
+            </tr>
+            <tr class="align-middle">
+                <td>Description</td>
+                <td><input type="text" class="form-control" name="description" value="{{ uu.description }}"></td>
+            </tr>
+            <tr class="align-middle">
+                <td>Level</td>
+                <td>{{ uu.level }}</td>
+            </tr>
+        </table> 
+        <div>
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </div>
+    </fieldset>
+</form>
+
+{% endblock content %}

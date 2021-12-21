@@ -1,0 +1,72 @@
+{% extends "tomato/base_generic_no_content.html" %}
+
+{% block title %}
+    <title> Dashboard - Tomato </title>
+{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-sm-2">
+            <div class="container-fluid p-5">
+
+            </div>
+        </div>
+        <div class="col-sm-8">
+            <div class="container-fluid p-5 bg-white">
+                <h1 class="h1">Hi, {{ uu.name }}!</h1>
+                <br>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseProfile" role="button" aria-expanded="true" aria-controls="collapseProfile">
+                        <h2 class="h2 text-center">Profile</h2>
+                    </a>
+                </div>
+                <div class="collapse show" id="collapseProfile">
+                    <div class="card card-body">
+                        <table class="table table-borderless align-middle table-hover">
+                            <thead></thead> 
+                            <tr>
+                                <td class="h5">Contact</td>
+                                <td>{{ uu.contact }}</td>
+                            </tr>
+                            <tr>
+                                <td class="h5">Email</td>
+                                <td>{{ uu.email }}</td>
+                            </tr>
+                            <tr>
+                                <td class="h5">Name</td>
+                                <td>{{ uu.name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="h5">Username</td>
+                                <td>{{ uu.username }}</td>
+                            </tr>
+                            <tr>
+                                <td class="h5">Identity</td>
+                                <td>{{ uu.identity }}</td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="h5">Description</td>
+                                <td>{{ uu.description }}</td>
+                            </tr>
+                            <tr>
+                                <td class="h5">Level</td>
+                                <td>{{ uu.level }}</td>
+                            </tr>
+                        </table>
+                        
+                        <form>
+                            <a class="btn btn-primary" href="{% url 'tomato:edit_profile' %}">Edit Profile</a>
+                        </form>
+                    </div>
+                </div>
+                <br>
+
+            </div>
+          </div>
+    </div>
+</div>
+
+{% endblock content %}

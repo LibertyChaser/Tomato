@@ -158,10 +158,97 @@ def register(request):
     )
 
 
+def dashboard(request):
+    context = get_user_context(request)
+    if context['uu'] == '':
+        return HttpResponseRedirect('/')
+    
+    return render(
+        request,
+        'tomato/dashboard.html',
+        context,
+    )
+    
+    
+def edit_profile(request):
+    context = get_user_context(request)
+    if context['uu'] == '':
+        return HttpResponseRedirect('/')
+    
+    if request.method == 'POST':
+        post_contact = request.POST['contact']
+        post_email = request.POST['email']
+        post_name = request.POST['name']
+        post_username = request.POST['username']
+        post_password1 = request.POST['password1']
+        post_password2 = request.POST['password2']
+        post_identity = request.POST['identity']
+        post_description = request.POST['description']
+        context['message'] = []
+        
+        if len(post_contact) > 64 or len(post_contact) == 0:
+            if len(post_contact) > 64:
+                context['message'].append('Contact is too long!')
+            else:
+                context['message'].append('Contact can\'t be empty!')
+                
+        if len(post_name) > 64 or len(post_name) == 0:
+            if len(post_name) > 64:
+                context['message'].append('Name is too long!')
+            else:
+                context['message'].append('Name can\'t be empty')
+
+        if len(context['message']) == 0:
+            matches_customer = Customer.objects.filter(contact=post_contact)
+            matches_staff = Staff.objects.filter(contact=post_contact)
+
+            if (len(matches_customer) != 0 or len(matches_staff) != 0) and context['uu'].contact != post_contact:
+                context['message'].append('Contact already exist.')
+
+            if len(context['message']) == 0:
+                if post_password1 == post_password2 and 0 < len(post_password1) <= 64:
+                    context['uu'].contact = post_contact
+                    context['uu'].email = post_email
+                    context['uu'].name = post_name
+                    context['uu'].username = post_username
+                    context['uu'].password = post_password1
+                    context['uu'].identity = post_identity
+                    context['uu'].description = post_description
+                    context['uu'].save()
+                    request.session['contact'] = post_contact
+                    context['message'].append('Infomation updated!')
+
+                else:
+                    if len(post_password1) == 0:
+                        context['message'].append('Password can\'t be empty!')
+                    elif len(post_password1) > 64:
+                        context['message'].append('Password is too long!')
+                    else:
+                        context['message'].append('Passwords don\'t match!')
+    
+    return render(
+        request,
+        'tomato/edit_profile.html',
+        context,
+    )
+
 def rooms(request):
     context = get_user_context(request)
     
     context['room_type'] = RoomType.objects.all()
+    
+    if context['role'] == 'customer':
+        Level = (
+            ('g', 'general_user'),
+            ('v', 'vip_ueser'),
+        )
+        Discount = {
+            'g': 1.0,
+            'v': 0.8,
+        }
+        level = context['uu'].level
+        for item in context['room_type']:
+            item.price *= (item.base_price * Discount[level])
     
     return render(
         request,
