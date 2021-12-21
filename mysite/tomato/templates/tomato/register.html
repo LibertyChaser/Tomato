@@ -1,0 +1,96 @@
+{% extends "tomato/base_generic_no_content.html" %}
+
+{% block title %}
+    <title> Register - Tomato </title>
+{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: hsl(213, 13%, 87%);
+        background: linear-gradient(to right, #e0e2e5, #dde1e3);
+        }
+        
+        .btn-register {
+        font-size: 0.9rem;
+        letter-spacing: 0.05rem;
+        padding: 0.75rem 1rem;
+        }
+        
+        .btn-google {
+        color: white !important;
+        background-color: #ea4335;
+        }
+        
+        .btn-facebook {
+        color: white !important;
+        background-color: #3b5998;
+        }
+</style>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+            <div class="card border-0 shadow rounded-3 my-5">
+                <div class="card-body p-4 p-sm-5">
+                    <h3 class="h3 text-center">
+                        Register
+                    </h3>
+                    <br>
+                    <form action="{% url 'tomato:register' %}" method="post">
+                        {% csrf_token %}
+                        {% if message %}
+                            {% for msg in message %}
+                                {% if 'Successfully' not in msg %}
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-exclamation-triangle-fill"></i><strong> {{ msg }}</strong>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-check-circle-fill"></i><strong> {{ msg }}</strong>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        <div class="form-floating mb-3">
+                            <input type="text" name="name" class="form-control" id="floatingInput" placeholder="Name" value="{{ draft.name }}">
+                            <label for="floatingInput">Name</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" name="contact" class="form-control" id="floatingInput" placeholder="contact" value="{{ draft.contact }}">
+                            <label for="floatingInput">Contact</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="password" name="password1" class="form-control" id="floatingPassword" placeholder="Password" value="{{ draft.password1 }}">
+                            <label for="floatingPassword">Password</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="password" name="password2" class="form-control" id="floatingPassword" placeholder="Password" value="{{ draft.password2 }}">
+                            <label for="floatingPassword">Confirm Password</label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button class="btn btn-primary btn-register text-uppercase fw-bold" type="submit">Register</button>
+                        </div>
+                        <hr class="my-4">
+                        <div class="d-grid mb-2">
+                            <button class="btn btn-google btn-register text-uppercase fw-bold" type="submit">
+                                <i class="fab fa-google me-2"></i> Register with Google
+                            </button>
+                        </div>
+                        <div class="d-grid">
+                            <button class="btn btn-facebook btn-register text-uppercase fw-bold" type="submit">
+                                <i class="fab fa-facebook-f me-2"></i> Register with Facebook
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
