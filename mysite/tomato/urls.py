@@ -30,4 +30,5 @@ urlpatterns = [
     
     path('today/check/', views.today_check, name='today_check'),
     
+    path('overview/', views.overview, name='overview'),
 ]

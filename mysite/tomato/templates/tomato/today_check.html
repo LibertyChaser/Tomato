@@ -23,7 +23,8 @@
                             <a href="{% url 'tomato:order_detail' check_in.id %}">
                                 {{ check_in.customer.name }} -
                                 {{ check_in.room_type.name }} -
-                                Leave Time: {{ check_in.check_out_date }} 
+                                Leave Time: {{ check_in.check_out_date }} -
+                                Room Number: {{ check_in.room_number.room_number }}
                             </a>
                         </div>
                     </div>

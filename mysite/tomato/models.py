@@ -123,3 +123,15 @@ class Order(models.Model):
             self.price,
         )
 
+
+class BankCard(models.Model):
+    card_id = models.IntegerField(default=0)
+    balance = models.IntegerField(default=2000)
+
+    def __str__(self):
+        return "Card ID:{} {} Balance:{}".format(
+            self.card_id,
+            self.balance, 
+        )
+        
+        

@@ -322,6 +322,18 @@ def room_type_order(request, room_type_id):
         if context['draft']['check_in_date'] >= context['draft']['check_out_date']:
             context['message'].append('Check in time can\'t before check out time!')
         
+        check_in_day = parse(context['draft']['check_in_date'])
+        check_out_day = parse(context['draft']['check_out_date'])
+        diff = check_out_day - check_in_day
+        
+        context['order'].price = context['room_type'].price * diff.days
+        context['order'].bank_card = request.POST['bank_card']
+        
+        if (check_in_day - datetime.datetime.today()).days > 30:
+            context['order'].price *= 0.75
+            context['order'].state = 'r'
+            
+        
         if len(context['message']) == 0:
             context['order'] = Order()
             context['order'].time = datetime.datetime.now()
@@ -329,17 +341,6 @@ def room_type_order(request, room_type_id):
             context['order'].check_out_date = context['draft']['check_out_date']
             context['order'].room_type = context['room_type']
             context['order'].room_number = get_object_or_404(Room, pk=13)
-            
-            check_in_day = parse(context['draft']['check_in_date'])
-            check_out_day = parse(context['draft']['check_out_date'])
-            diff = check_out_day - check_in_day
-            
-            context['order'].price = context['room_type'].price * diff.days
-            context['order'].bank_card = request.POST['bank_card']
-            
-            if (check_in_day - datetime.datetime.today()).days > 30:
-                context['order'].price *= 0.75
-                context['order'].state = 'r'
             
             context['order'].customer = context['uu']
             context['order'].save()
@@ -509,6 +510,7 @@ def order_check_in(request, order_id):
         room.save()
         
         context['order'].state = 'i'
+        context['order'].room_number = room
         context['order'].save()
         
         context['message'] = []
@@ -578,4 +580,9 @@ def orders(request):
         'tomato/orders.html',
         context,
     )
+    
+    
+def overview(request):
+    pass
+    
     
