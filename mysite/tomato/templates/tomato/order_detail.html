@@ -56,15 +56,28 @@
               <td>Finished</td>
             {% elif order.state == 'r' %}
               <td>Reservation</td>
+            {% elif order.state == 'i' %}
+              <td>Checked In</td>
             {% endif %}
         </tr>
     </table>
-    {% if order.state == 'p' or order.state == 'r' %}
+    {% if role == 'customer' %}
+        {% if order.state == 'p' or order.state == 'r' %}
         <form>
             <a class="btn btn-primary" href="{% url 'tomato:order_change' order.id %}">Change Order</a>
+            <a class="btn btn-danger" href="{% url 'tomato:order_cancel' order.id %}">Cancel Order</a>
         </form>
+        {% endif %}
     {% else %}
-        <br>
+        {% if flag == 'check_in' %}
+            <form>
+                <a class="btn btn-primary" href="{% url 'tomato:order_check_in' order.id %}">Check In</a>
+            </form>
+        {% elif flag == 'check_out' %}
+            <form>
+                <a class="btn btn-success" href="{% url 'tomato:order_check_out' order.id %}">Check Out</a>
+            </form>
+        {% endif %}
     {% endif %}
 </div>
 

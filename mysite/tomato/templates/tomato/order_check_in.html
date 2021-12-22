@@ -1,12 +1,11 @@
 {% extends "tomato/base_generic.html" %}
 
 {% block title %}
-    <title> Order Change - Tomato </title>
+    <title> Check In - Tomato </title>
 {% endblock title %}
 
 {% block content %}
-
-<form action="{% url 'tomato:order_change' order.id %}" method="post">
+<form action="{% url 'tomato:order_check_in' order.id %}" method="post">
     {% csrf_token %}
     <fieldset>
         {% if role == 'customer' %}
@@ -40,30 +39,33 @@
                 <td>{{ order.room_type.description }}</td>
             </tr>
             <tr class="align-middle">
-                <td>Room Single Price:</td>
-                <td>
-                    {% if uu.level == 'v' %}
-                    {{ order.room_type.price }}<br>(Original price is {{ order.room_type.base_price }})
-                {% else %}
-                    {{ order.room_type.base_price }}
-                {% endif %}
-                </td>
+                <td>Price:</td>
+                <td>{{ order.price }}</td>
             </tr>
             <tr class="align-middle">
                 <td>Check in Date</td>
-                <td><input class="form-control" type="date" name="check_in_date" value="{{ order.check_in_date|date:'Y-m-d' }}"></td>
+                <td>{{ order.check_in_date|date:'Y-m-d' }}</td>
             </tr>
             <tr class="align-middle">
                 <td>Check out Date</td>
-                <td><input class="form-control" type="date" name="check_out_date" value="{{ order.check_out_date|date:'Y-m-d' }}"></td>
+                <td>{{ order.check_out_date|date:'Y-m-d' }}</td>
             </tr>
             <tr class="align-middle">
                 <td>Bank Card</td>
-                <td><input class="form-control" type="text" name="bank_card" value="{{ order.bank_card }}"></td>
+                <td>{{ order.bank_card }}</td>
+            </tr>
+            <tr class="align-middle">
+                <td>Room Number</td>
+                <td>            
+                    <select class="form-select" name="check_in_room">
+                        {% for choice in room_choices %}
+                            <option value="{{choice.id}}">{{choice.room_number}}</option>
+                        {% endfor %}
+                    </select>
+                </td>
             </tr>
         </table>
-        <button class="btn btn-primary" type="submit">Submit</button>
+        <button class="btn btn-primary" type="submit">Check In</button>
     </fieldset>
 </form>
-
 {% endblock content %}

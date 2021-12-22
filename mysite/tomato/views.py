@@ -358,6 +358,8 @@ def rooms(request):
     if context['role'] != 'staff':
         return HttpResponseRedirect('/')
     
+    context['room_types'] = RoomType.objects.all()
+
     return render(
         request,
         'tomato/rooms.html',
@@ -380,7 +382,36 @@ def my_orders(request):
         context,
     )
     
+
+def order_cancel(request, order_id):
+    context = get_user_context(request)
     
+    context['order'] = get_object_or_404(Order, pk=order_id)
+
+    if context['role'] == '' or context['order'].state == 'f' or context['order'].state == 'c':
+        return HttpResponseRedirect('/')
+    
+    if context['role'] == 'customer' and context['uu'].id != context['order'].customer.id:
+        return HttpResponseRedirect('/')
+    
+    check_in_day = context['order'].check_in_date
+    
+    if context['order'].state != 'r' and (check_in_day - datetime.datetime.today()).days >= 3:
+    
+        check_out_day = parse(context['order'].check_out_date)
+        diff = check_out_day - check_in_day
+        context['order'].price /= diff.days
+    
+    context['order'].state = 'c'
+    context['order'].save()
+            
+    return render(
+        request,
+        'tomato/order_change.html',
+        context,
+    )
+
+
 def order_detail(request, order_id):
     context = get_user_context(request)
     
@@ -391,6 +422,12 @@ def order_detail(request, order_id):
     
     if context['role'] == 'customer' and context['uu'].id != context['order'].customer.id:
         return HttpResponseRedirect('/')
+    
+    if context['order'].check_in_date == datetime.date.today() and context['order'].state != 'i':
+        context['flag'] = 'check_in'
+    
+    elif context['order'].check_out_date == datetime.date.today() and context['order'].state == 'i':
+        context['flag'] = 'check_out'
     
     return render(
         request,
@@ -427,12 +464,8 @@ def order_change(request, order_id):
         
         if len(context['message']) == 0:
             
-            # context['order'] = Order()
-            # context['order'].time = datetime.datetime.now()
             context['order'].check_in_date = post_check_in_date
             context['order'].check_out_date = post_check_out_date
-            # context['order'].room_type = context['room_type']
-            # context['order'].room_number = get_object_or_404(Room, pk=13)
             
             check_in_day = parse(post_check_in_date)
             check_out_day = parse(post_check_out_date)
@@ -445,7 +478,6 @@ def order_change(request, order_id):
                 context['order'].price *= 0.75
                 context['order'].state = 'r'
             
-            # context['order'].customer = context['uu']
             context['order'].save()
             
             context['message'].append('Order Successfully!')
@@ -455,3 +487,95 @@ def order_change(request, order_id):
         'tomato/order_change.html',
         context,
     )
+
+
+def order_check_in(request, order_id):
+    context = get_user_context(request)
+    
+    context['order'] = get_object_or_404(Order, pk=order_id)
+
+    if context['role'] == '' or context['order'].state == 'f' or context['order'].state == 'c':
+        return HttpResponseRedirect('/')
+    
+    if context['role'] != 'staff':
+        return HttpResponseRedirect('/')
+    
+    context['room_choices'] = Room.objects.filter(available='a', room_type=context['order'].room_type)
+    
+    if request.method == 'POST':
+        room_choice = request.POST['check_in_room']
+        room = get_object_or_404(Room, pk=room_choice)
+        room.available = 'b'
+        room.save()
+        
+        context['order'].state = 'i'
+        context['order'].save()
+        
+        context['message'] = []
+        context['message'].append('Check In Successfully!')
+            
+    return render(
+        request,
+        'tomato/order_check_in.html',
+        context,
+    )
+    
+    
+def order_check_out(request, order_id):
+    context = get_user_context(request)
+    
+    context['order'] = get_object_or_404(Order, pk=order_id)
+
+    if context['role'] == '' or context['order'].state == 'f' or context['order'].state == 'c':
+        return HttpResponseRedirect('/')
+    
+    if context['role'] != 'staff':
+        return HttpResponseRedirect('/')
+    
+    context['flag'] = 'check_out'
+    room = get_object_or_404(Room, pk=context['order'].room_number.id)
+    room.available = 'a'
+    room.save()
+    
+    context['order'].state = 'f'
+    context['order'].save()
+    
+    context['message'] = []
+    context['message'].append('Check Out Successfully!')
+            
+    return HttpResponseRedirect('/today/check/')
+    
+    
+def today_check(request):
+    context = get_user_context(request)
+
+    if context['role'] == '':
+        return HttpResponseRedirect('/')
+    
+    if context['role'] != 'staff':
+        return HttpResponseRedirect('/')
+    
+    context['all_check_in'] = Order.objects.filter(check_in_date=datetime.date.today().strftime('%Y-%m-%d'))
+    context['all_check_out'] = Order.objects.filter(check_out_date=datetime.date.today().strftime('%Y-%m-%d'))
+    
+    return render(
+        request,
+        'tomato/today_check.html',
+        context,
+    )
+        
+        
+def orders(request):
+    context = get_user_context(request)
+    
+    if context['uu'].job != 'm':
+        return HttpResponseRedirect('/')
+    
+    context['orders'] = Order.objects.all()
+    
+    return render(
+        request,
+        'tomato/orders.html',
+        context,
+    )
+    

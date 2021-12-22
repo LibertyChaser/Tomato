@@ -1,0 +1,93 @@
+{% extends "tomato/base_generic.html" %}
+
+{% block title %}
+    <title> Today Check - Tomato </title>
+{% endblock %}
+
+{% block content %}
+<h1 class="h1">Today Check</h1>
+<br>
+<div class="d-grid gap-2">
+    <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseCheckIn" role="button" aria-expanded="true" aria-controls="collapseCheckIn">
+        <h3 class="h3 text-center">Check In</h3>
+    </a>
+</div>
+<div class="collapse show" id="collapseCheckIn">
+    <div class="card card-body">
+        {% if all_check_in %}
+        <ol class="list-group list-group-numbered">
+            {% for check_in in all_check_in %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold">
+                            <a href="{% url 'tomato:order_detail' check_in.id %}">
+                                {{ check_in.customer.name }} -
+                                {{ check_in.room_type.name }} -
+                                Leave Time: {{ check_in.check_out_date }} 
+                            </a>
+                        </div>
+                    </div>
+                    {% if check_in.state == 'i' %}
+                        <span class="badge bg-info rounded-pill">i</span>
+                    {% elif check_in.state == 'p' %}
+                        <span class="badge bg-warning rounded-pill">p</span>
+                    {% elif check_in.state == 'f' %}
+                        <span class="badge bg-secondary rounded-pill">f</span>
+                    {% elif check_in.state == 'r' %}
+                        <span class="badge bg-success rounded-pill">r</span>
+                    {% elif check_in.state == 'c' %}
+                        <span class="badge bg-danger rounded-pill">c</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+            <p>No Check In Today.</p>
+        {% endif %}
+        <br>
+    </div>
+</div>
+<br>
+<div class="d-grid gap-2">
+    <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseCheckOut" role="button" aria-expanded="true" aria-controls="collapseCheckOut">
+        <h3 class="h3 text-center">Check Out</h3>
+    </a>
+</div>
+<div class="collapse show" id="collapseCheckOut">
+    <div class="card card-body">
+        {% if all_check_out %}
+        <ol class="list-group list-group-numbered">
+            {% for check_out in all_check_out %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold">
+                            <a href="{% url 'tomato:order_detail' check_out.id %}">
+                                {{ check_out.customer.name }} -
+                                {{ check_out.room_type.name }} -
+                                Arrive Time: {{ check_out.check_in_date }} 
+                            </a>
+                        </div>
+                    </div>
+                    {% if check_out.state == 'i' %}
+                        <span class="badge bg-info rounded-pill">i</span>
+                    {% elif check_out.state == 'p' %}
+                        <span class="badge bg-warning rounded-pill">p</span>
+                    {% elif check_out.state == 'f' %}
+                        <span class="badge bg-secondary rounded-pill">f</span>
+                    {% elif check_out.state == 'r' %}
+                        <span class="badge bg-success rounded-pill">r</span>
+                    {% elif check_out.state == 'c' %}
+                        <span class="badge bg-danger rounded-pill">c</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+            <p>No Check Out Today.</p>
+        {% endif %}
+        <br>
+    </div>
+</div>
+
+{% endblock content %}
+

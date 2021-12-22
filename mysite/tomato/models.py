@@ -4,7 +4,7 @@ from django.db import models
 class Customer(models.Model):
     # Discount = {
     #     'g': 1.0,
-    #     'v': 0.8,
+    #     'v': 0.9,
     # }
     contact = models.CharField(max_length=64)
     email = models.EmailField()
@@ -98,6 +98,7 @@ class Order(models.Model):
         ('c', 'canceled'),  # red
         ('f', 'finished'),  # gray
         ('r', 'under_reservation'),  # green
+        ('i', 'checked_in'), # info
     )
     time = models.DateTimeField()
     check_in_date = models.DateField()

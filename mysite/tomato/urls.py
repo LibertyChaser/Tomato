@@ -21,7 +21,13 @@ urlpatterns = [
     path('rooms/', views.rooms, name='rooms'),
     
     path('my_orders/', views.my_orders, name='my_orders'),
+    path('orders/', views.orders, name='orders'),
     path('order/<int:order_id>/detail/', views.order_detail, name='order_detail'),
     path('order/<int:order_id>/change/', views.order_change, name='order_change'),
+    path('order/<int:order_id>/cancel/', views.order_cancel, name='order_cancel'),
+    path('order/<int:order_id>/check_in/', views.order_check_in, name='order_check_in'),
+    path('order/<int:order_id>/check_out/', views.order_check_out, name='order_check_out'),
+    
+    path('today/check/', views.today_check, name='today_check'),
     
 ]

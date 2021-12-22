@@ -5,5 +5,60 @@
 {% endblock title %}
 
 {% block content %}
-Room Type Detail
+{% csrf_token %}
+{% load static %}
+
+<h1 class="h1">Room Type Detail</h1>
+
+<div class="card mb-3" >
+    <div class="row g-0">
+        <div class="col-md-4">
+            {% if  room_type.name == '经济特价' %}
+            <img src="{% static 'tomato/image/economy_room.png' %}" class="img-fluid rounded-start" alt="economy_room">
+            {% elif  room_type.name  == '标准间' %}
+            <img src="{% static 'tomato/image/standard_room.png' %}" class="img-fluid rounded-start" alt="standard_room">
+            {% elif  room_type.name == '加州风情' %}
+            <img src="{% static 'tomato/image/california_style.png' %}" class="img-fluid rounded-start" alt="california_style">
+            {% endif %}
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title h4">
+                    <a href="{% url 'tomato:room_type_detail' room_type.id %}">
+                        {% if room_type.state == 'p' %}
+                        <button type="button" class="btn btn-warning btn-sm"><strong>P</strong></button>
+                        {% elif room_type.state == 'c' %}
+                        <button type="button" class="btn btn-danger btn-sm"><strong>C</strong></button>
+                        {% elif room_type.state == 'f' %}
+                        <button type="button" class="btn btn-secondary btn-sm"><strong>F</strong></button>
+                        {% elif room_type.state == 'r' %}
+                        <button type="button" class="btn btn-success btn-sm"><strong>R</strong></button>
+                        {% elif room_type.state == 'i' %}
+                        <button type="button" class="btn btn-info btn-sm"><strong>I</strong></button>
+                        {% endif %}
+                        {{ room_type.name }} - Oasis Hotel
+                    </a>
+                </h5>
+                <p class="card-text">{{ room_type.description }}</p>
+                <p class="card-text">
+                    {% for room in room_type.room_set.all %}
+                        {% if room.room_number %}
+                            {% if room.available == 'a' %}
+                                <button type="button" class="btn btn-outline-primary btn-sm">{{ room.room_number }}</button>
+                            {% elif room.available == 'b' %}
+                                <button type="button" class="btn btn-outline-danger btn-sm">{{ room.room_number }}</button>
+                            {% elif room.available == 'm' %}
+                                <button type="button" class="btn btn-outline-secondary btn-sm">{{ room.room_number }}</button>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    <!-- <small class="text-muted">{{ room_type.check_in_date }} - {{ room_type.check_out_date }}</small> -->
+                </p>
+                <p class="card-text h5">Base Price: ¥{{ room_type.base_price }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {% endblock content %}

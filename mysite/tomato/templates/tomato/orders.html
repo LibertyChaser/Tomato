@@ -1,0 +1,42 @@
+{% extends "tomato/base_generic.html" %}
+
+{% block title %}
+    <title> Orders - Tomato </title>
+{% endblock %}
+
+{% block content %}
+<h1 class="h1">Orders</h1>
+<br>
+    {% if orders %}
+    <ol class="list-group list-group-numbered">
+        {% for order in orders %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+                <div class="ms-2 me-auto">
+                    <div class="fw-bold">
+                        <a href="{% url 'tomato:order_detail' order.id %}">
+                            {{ order.customer.name }} -
+                            {{ order.room_type.name }} -
+                            Leave Time: {{ order.check_out_date }} 
+                        </a>
+                    </div>
+                </div>
+                {% if order.state == 'i' %}
+                    <span class="badge bg-info rounded-pill">i</span>
+                {% elif order.state == 'p' %}
+                    <span class="badge bg-warning rounded-pill">p</span>
+                {% elif order.state == 'f' %}
+                    <span class="badge bg-secondary rounded-pill">f</span>
+                {% elif order.state == 'r' %}
+                    <span class="badge bg-success rounded-pill">r</span>
+                {% elif order.state == 'c' %}
+                    <span class="badge bg-danger rounded-pill">c</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+    {% else %}
+        <p>No Orders.</p>
+    {% endif %}
+    <br>
+
+{% endblock content %}
