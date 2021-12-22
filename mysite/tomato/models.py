@@ -2,10 +2,6 @@ from django.db import models
 
 
 class Customer(models.Model):
-    Level = (
-        ('g', 'general_user'),
-        ('v', 'vip_ueser'),
-    )
     # Discount = {
     #     'g': 1.0,
     #     'v': 0.8,
@@ -23,7 +19,11 @@ class Customer(models.Model):
     )
     # discount = Discount[str(level)]
     def __str__(self):
-        return "{} {}".format(self.name, self.level)
+        Level = {
+            'g': 'general_user',
+            'v': 'vip_ueser',
+        }
+        return "{} {}".format(self.name, Level[self.level])
 
 
 class Staff(models.Model):
@@ -48,7 +48,11 @@ class Staff(models.Model):
     )
     
     def __str__(self):
-        return "{} {}".format(self.name, self.job)
+        Job = {
+            'r': 'receptionist',
+            'm': 'manager',
+        }
+        return "{} {}".format(self.name, Job[self.job])
 
 
 class RoomType(models.Model):
@@ -107,4 +111,12 @@ class Order(models.Model):
         choices=State,
         default='p',
     )
+    
+    def __str__(self):
+        return "{} {} - {} price:{}".format(
+            self.customer,
+            self.check_in_date, 
+            self.check_out_date, 
+            self.price,
+        )
 

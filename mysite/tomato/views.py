@@ -8,6 +8,8 @@ from django.utils import timezone
 from django.http import HttpResponse
 from django.contrib import messages
 from django.views.generic import ListView
+import datetime
+from dateutil.parser import parse
 import re
 
 from .models import *
@@ -172,6 +174,7 @@ def dashboard(request):
     
 def edit_profile(request):
     context = get_user_context(request)
+    
     if context['uu'] == '':
         return HttpResponseRedirect('/')
     
@@ -232,10 +235,11 @@ def edit_profile(request):
         context,
     )
 
-def rooms(request):
+
+def room_types(request):
     context = get_user_context(request)
     
-    context['room_type'] = RoomType.objects.all()
+    context['room_types'] = RoomType.objects.all()
     
     if context['role'] == 'customer':
         Level = (
@@ -247,13 +251,82 @@ def rooms(request):
             'v': 0.8,
         }
         level = context['uu'].level
-        for item in context['room_type']:
+        for item in context['room_types']:
             item.price *= (item.base_price * Discount[level])
+    
+    return render(
+        request,
+        'tomato/room_types.html',
+        context,
+    )
+    
+    
+def room_type_order(request, room_type_id):
+    context = get_user_context(request)
+    
+    if context['role'] != 'customer':
+        return HttpResponseRedirect('/')
+    
+    context['room_type'] = get_object_or_404(RoomType, pk=room_type_id)
+    Discount = {
+        'g': 1.0,
+        'v': 0.8,
+    }
+    level = context['uu'].level
+    context['room_type'].price *= (context['room_type'].base_price * Discount[level])
+    
+    if context['role'] != 'customer':
+        return HttpResponseRedirect('/')
+    
+    context['draft'] = {}
+    context['message'] = []
+    
+    if request.method == 'POST':
+        context['draft']['check_in_date'] = request.POST['check_in_date']
+        context['draft']['check_out_date'] = request.POST['check_out_date']
+        
+        if context['draft']['check_in_date'] < datetime.date.today().strftime('%Y-%m-%d'):
+            context['message'].append('Check in time can\'t before todaty!')
+            
+        if context['draft']['check_in_date'] >= context['draft']['check_out_date']:
+            context['message'].append('Check in time can\'t before check out time!')
+        
+        if len(context['message']) == 0:
+            new = Order()
+            new.time = datetime.datetime.now()
+            new.check_in_date = context['draft']['check_in_date']
+            new.check_out_date = context['draft']['check_out_date']
+            new.room_type = context['room_type']
+            new.room_number = get_object_or_404(Room, pk=13)
+            
+            check_in_day = parse(context['draft']['check_in_date'])
+            check_out_day = parse(context['draft']['check_out_date'])
+            diff = check_out_day - check_in_day
+            
+            new.price = context['room_type'].price * diff.days
+            
+            if (check_in_day - datetime.datetime.today()).days > 30:
+                new.price *= 0.7
+            
+            new.customer = context['uu']
+            new.save()
+            context['message'].append('Order Successfully!')
+            
+    return render(
+        request,
+        'tomato/room_type_order.html',
+        context,
+    )
+    
+    
+def rooms(request):
+    context = get_user_context(request)
+    
+    if context['role'] != 'Staff':
+        return HttpResponseRedirect('/')
     
     return render(
         request,
         'tomato/rooms.html',
         context,
     )
-    
-    

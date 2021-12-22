@@ -5,12 +5,15 @@
 {% endblock title %}
 
 {% block content %}
+{% load static %}
     <h1>
         Home of Tomato!
     </h1>
     <p>
         Welcome {{ uu.name }}!
         Tomato is a website used for hotel.
+        <img src="{% static 'tomato/image/hotel.jpg' %}" class="card-img-top" alt="hotel">
     </p>
+
 
 {% endblock content %}

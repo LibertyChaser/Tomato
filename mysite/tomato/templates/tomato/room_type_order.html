@@ -1,0 +1,62 @@
+{% extends "tomato/base_generic.html" %}
+
+{% block title %}
+    <title> Order - Tomato </title>
+{% endblock title %}
+
+
+{% block content %}
+
+<form action="{% url 'tomato:room_type_order' room_type.id %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+        <h1 class="h1">Order Room</h1>
+        {% if message %}
+            {% for msg in message %}
+                {% if 'Successfully' not in msg %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i><strong> {{ msg }}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% else %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill"></i><strong> {{ msg }}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        <table class="table table-hover table-sm align-middle table-light">
+            <thead></thead>
+            <tr class="align-middle">
+                <td>Room Type Name:</td>
+                <td>{{ room_type.name }}</td>
+            </tr>
+            <tr class="align-middle">
+                <td>Room Type Name:</td>
+                <td>{{ room_type.description }}</td>
+            </tr>
+            <tr class="align-middle">
+                <td>Room Single Price:</td>
+                <td>
+                    {% if uu.level == 'v' %}
+                    {{ room_type.price }}<br>(Original price is {{ room_type.base_price }})
+                {% else %}
+                    {{ room_type.base_price }}
+                {% endif %}
+                </td>
+            </tr>
+            <tr class="align-middle">
+                <td>Check in Date</td>
+                <td><input class="form-control" type="date" id="d1" name="check_in_date" value="{{ draft.check_in_date }}"></td>
+            </tr>
+            <tr class="align-middle">
+                <td>Check out Date</td>
+                <td><input class="form-control" id="d2" type="date" name="check_out_date" value="{{ draft.check_out_date }}"></td>
+            </tr>
+        </table>
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </fieldset>
+</form>
+
+{% endblock content %}
