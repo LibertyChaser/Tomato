@@ -31,23 +31,33 @@
                 <td class="h5">Name</td>
                 <td>{{ uu.name }}</td>
             </tr>
-            <tr>
-                <td class="h5">Username</td>
-                <td>{{ uu.username }}</td>
-            </tr>
-            <tr>
-                <td class="h5">Identity</td>
-                <td>{{ uu.identity }}</td>
-            </tr>
-            
-            <tr>
-                <td class="h5">Description</td>
-                <td>{{ uu.description }}</td>
-            </tr>
-            <tr>
-                <td class="h5">Level</td>
-                <td>{{ uu.level }}</td>
-            </tr>
+            {% if role == 'customer' %}
+                <tr>
+                    <td class="h5">Username</td>
+                    <td>{{ uu.username }}</td>
+                </tr>
+                <tr>
+                    <td class="h5">Identity</td>
+                    <td>{{ uu.identity }}</td>
+                </tr>
+                <tr>
+                    <td class="h5">Bank Card</td>
+                    <td>{{ uu.bank_card }}</td>
+                </tr>
+                <tr>
+                    <td class="h5">Description</td>
+                    <td>{{ uu.description }}</td>
+                </tr>
+                <tr>
+                    <td class="h5">Level</td>
+                    <td>{{ uu.level }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td class="h5">Job</td>
+                    <td>{{ uu.job }}</td>
+                </tr>
+            {% endif %}
         </table>
         
         <form>

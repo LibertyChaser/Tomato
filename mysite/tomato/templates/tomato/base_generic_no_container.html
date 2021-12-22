@@ -38,31 +38,31 @@
         <div class="navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'tomato:index' %}">Home</a>
+                <a class="nav-link" href="{% url 'tomato:index' %}"><strong>Home</strong></a>
             </li>
             <li class="nav-item">
 
-                <a class="nav-link" href="{% url 'tomato:room_types' %}">Room Types</a>
+                <a class="nav-link" href="{% url 'tomato:room_types' %}"><strong>Room Types</strong></a>
             </li>
         </ul>
         <ul class="navbar-nav navbar-right">
             {% if uu %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'tomato:dashboard' %}"
-                    ><span class="glyphicon glyphicon-user"></span> {{ uu.name }}</a>
+                    ><span class="glyphicon glyphicon-user"></span><strong>{{ uu.name }}</strong></a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'tomato:logout' %}"
-                    ><span class="glyphicon glyphicon-log-out"></span> Logout</a>
+                    ><span class="glyphicon glyphicon-log-out"></span><strong>Logout</strong></a>
             </li>
             {% else %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'tomato:login' %}"
-                    ><span class="glyphicon glyphicon-log-in"></span>Login</a>
+                    ><span class="glyphicon glyphicon-log-in"></span><strong>Login</strong></a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href=" {% url 'tomato:register' %}"
-                    ><span class="glyphicon glyphicon-user"></span>Register</a >
+                    ><span class="glyphicon glyphicon-user"></span><strong>Register</strong></a >
             </li>
             {% endif %}
         </ul>

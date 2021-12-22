@@ -1,0 +1,71 @@
+{% extends "tomato/base_generic.html" %}
+
+{% block title %}
+    <title> Order Detail - Tomato </title>
+{% endblock title %}
+
+{% block content %}
+
+<h1 class="h1">Order Detail</h1>
+<div class="card card-body">
+    <table class="table table-borderless align-middle table-hover">
+        <thead></thead> 
+        <tr>
+            <td class="h5">Order Time</td>
+            <td>{{ order.time }}</td>
+        </tr>
+        <tr>
+            <td class="h5">Check In Date</td>
+            <td>{{ order.check_in_date }}</td>
+        </tr>
+        <tr>
+            <td class="h5">Check Out Date</td>
+            <td>{{ order.check_out_date }}</td>
+        </tr>
+        <tr>
+            <td class="h5">Room Type</td>
+            <td>{{ order.room_type.id }}</td>
+        </tr>
+        <tr>
+            <td class="h5">Room Number</td>
+            {% if order.room_number.floor == 0 %}
+              <td>None</td>
+            {% else %}
+              <td>{{ order.room_number.id }}</td>
+            {% endif %}
+        </tr>
+        <tr>
+            <td class="h5">Price</td>
+            <td>{{ order.price }}</td>
+        </tr>
+        <tr>
+            <td class="h5">Bank Card</td>
+            <td>{{ order.bank_card }}</td>
+        </tr>
+        <tr>
+            <td class="h5">Customer</td>
+            <td>{{ order.customer.name }}</td>
+        </tr>
+        <tr>
+            <td class="h5">State</td>
+            {% if order.state == 'p' %}
+              <td>In Progress</td>
+            {% elif order.state == 'c' %}
+              <td>Canceled</td>
+            {% elif order.state == 'f' %}
+              <td>Finished</td>
+            {% elif order.state == 'r' %}
+              <td>Reservation</td>
+            {% endif %}
+        </tr>
+    </table>
+    {% if order.state == 'p' or order.state == 'r' %}
+        <form>
+            <a class="btn btn-primary" href="{% url 'tomato:order_change' order.id %}">Change Order</a>
+        </form>
+    {% else %}
+        <br>
+    {% endif %}
+</div>
+
+{% endblock content %}

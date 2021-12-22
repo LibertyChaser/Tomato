@@ -1,16 +1,19 @@
 {% extends "tomato/base_generic.html" %}
 
 {% block title %}
-    <title> Order - Tomato </title>
+    <title> Order Change - Tomato </title>
 {% endblock title %}
-
 
 {% block content %}
 
-<form action="{% url 'tomato:room_type_order' room_type.id %}" method="post">
+<form action="{% url 'tomato:order_change' order.id %}" method="post">
     {% csrf_token %}
     <fieldset>
-        <h1 class="h1">Order Room</h1>
+        {% if role == 'customer' %}
+        <h1 class="h1">Change Order</h1>
+        {% else %}
+        <h1 class="h1">Check In</h1>
+        {% endif %}
         {% if message %}
             {% for msg in message %}
                 {% if 'Successfully' not in msg %}
@@ -30,33 +33,33 @@
             <thead></thead>
             <tr class="align-middle">
                 <td>Room Type Name:</td>
-                <td>{{ room_type.name }}</td>
+                <td>{{ order.room_type.name }}</td>
             </tr>
             <tr class="align-middle">
                 <td>Room Type Name:</td>
-                <td>{{ room_type.description }}</td>
+                <td>{{ order.room_type.description }}</td>
             </tr>
             <tr class="align-middle">
                 <td>Room Single Price:</td>
                 <td>
                     {% if uu.level == 'v' %}
-                    {{ room_type.price }}<br>(Original price is {{ room_type.base_price }})
+                    {{ order.room_type.price }}<br>(Original price is {{ order.room_type.base_price }})
                 {% else %}
-                    {{ room_type.base_price }}
+                    {{ order.room_type.base_price }}
                 {% endif %}
                 </td>
             </tr>
             <tr class="align-middle">
                 <td>Check in Date</td>
-                <td><input class="form-control" type="date" name="check_in_date" value="{{ draft.check_in_date }}"></td>
+                <td><input class="form-control" type="date" name="check_in_date" value="{{ order.check_in_date|date:'Y-m-d' }}"></td>
             </tr>
             <tr class="align-middle">
                 <td>Check out Date</td>
-                <td><input class="form-control" type="date" name="check_out_date" value="{{ draft.check_out_date }}"></td>
+                <td><input class="form-control" type="date" name="check_out_date" value="{{ order.check_out_date|date:'Y-m-d' }}"></td>
             </tr>
             <tr class="align-middle">
                 <td>Bank Card</td>
-                <td><input class="form-control" type="text" name="bank_card" value="{{ uu.bank_card }}"></td>
+                <td><input class="form-control" type="text" name="bank_card" value="{{ order.bank_card }}"></td>
             </tr>
         </table>
         <button class="btn btn-primary" type="submit">Submit</button>

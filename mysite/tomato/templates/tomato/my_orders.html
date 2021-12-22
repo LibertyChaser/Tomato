@@ -1,0 +1,65 @@
+{% extends "tomato/base_generic.html" %}
+
+{% block title %}
+    <title> Room Types - Tomato </title>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+{% load static %}
+
+<h1 class="h1">My Orders</h1>
+<br>
+<div class="d-grid gap-2">
+    <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseorderorder" role="button" aria-expanded="true" aria-controls="collapseorderorder">
+        <h2 class="h2 text-center"> All Orders </h2>
+    </a>
+</div>
+
+<div class="collapse show" id="collapseorderorder">
+    <div class="card card-body">
+        {% if all_orders %}
+            {% for order in all_orders %}
+            <a class="list-group" href="{% url 'tomato:order_detail' order.id %}">
+                <div class="card mb-3" >
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            {% if  order.room_type.name == '经济特价' %}
+                            <img src="{% static 'tomato/image/economy_room.png' %}" class="img-fluid rounded-start" alt="economy_room">
+                            {% elif  order.room_type.name  == '标准间' %}
+                            <img src="{% static 'tomato/image/standard_room.png' %}" class="img-fluid rounded-start" alt="standard_room">
+                            {% elif  order.room_type.name == '加州风情' %}
+                            <img src="{% static 'tomato/image/california_style.png' %}" class="img-fluid rounded-start" alt="california_style">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title h4">
+                                    {% if order.state == 'p' %}
+                                    <button type="button" class="btn btn-warning btn-sm"><strong>P</strong></button>
+                                    {% elif order.state == 'c' %}
+                                    <button type="button" class="btn btn-danger btn-sm"><strong>C</strong></button>
+                                    {% elif order.state == 'f' %}
+                                    <button type="button" class="btn btn-secondary btn-sm"><strong>F</strong></button>
+                                    {% elif order.state == 'r' %}
+                                    <button type="button" class="btn btn-success btn-sm"><strong>R</strong></button>
+                                    {% endif %}
+                                    {{ order.room_type.name }} - Oasis Hotel
+                                </h5>
+                                <p class="card-text">{{ order.room_type.description }}</p>
+                                <p class="card-text"><small class="text-muted">{{ order.check_in_date }} - {{ order.check_out_date }}</small></p>
+                                <p class="card-text h5">¥{{ order.price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <p>No orders are available.</p>
+        {% endif %}
+        <br>
+    </div>
+</div>
+
+{% endblock content %}

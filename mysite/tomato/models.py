@@ -12,6 +12,7 @@ class Customer(models.Model):
     username = models.CharField(max_length=64)
     password = models.CharField(max_length=64)
     identity = models.CharField(max_length=64)
+    bank_card = models.IntegerField(default=0)
     description = models.CharField(max_length=128)
     level = models.CharField(
         max_length=1,
@@ -93,10 +94,10 @@ class Room(models.Model):
     
 class Order(models.Model):
     State = (
-        ('p', 'in_progress'),
-        ('c', 'canceled'),
-        ('f', 'finished'),
-        ('r', 'under_reservation'),
+        ('p', 'in_progress'),  # yellow
+        ('c', 'canceled'),  # red
+        ('f', 'finished'),  # gray
+        ('r', 'under_reservation'),  # green
     )
     time = models.DateTimeField()
     check_in_date = models.DateField()
@@ -104,6 +105,7 @@ class Order(models.Model):
     room_type = models.ForeignKey(RoomType, on_delete=models.CASCADE)
     room_number = models.ForeignKey(Room, on_delete=models.CASCADE)
     price = models.IntegerField()
+    bank_card = models.IntegerField(default=0)
     # creator = models.ForeignKey(Customer, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     state = models.CharField(

@@ -14,6 +14,11 @@ import re
 
 from .models import *
 
+Discount = {
+    'g': 1.0,
+    'v': 0.9,
+}
+
 def get_user_context(request):
     context = dict()
 
@@ -144,11 +149,11 @@ def register(request):
             context['message'].append('Password Error!')
         
         if len(context['message']) == 0:
-            new = Customer()
-            new.name = context['draft']['name']
-            new.contact = context['draft']['contact']
-            new.password = context['draft']['password1']
-            new.save()
+            context['order'] = Customer()
+            context['order'].name = context['draft']['name']
+            context['order'].contact = context['draft']['contact']
+            context['order'].password = context['draft']['password1']
+            context['order'].save()
 
             context['draft'] = {}
             context['message'].append('Register Successfully!')
@@ -162,6 +167,7 @@ def register(request):
 
 def dashboard(request):
     context = get_user_context(request)
+    
     if context['uu'] == '':
         return HttpResponseRedirect('/')
     
@@ -186,6 +192,7 @@ def edit_profile(request):
         post_password1 = request.POST['password1']
         post_password2 = request.POST['password2']
         post_identity = request.POST['identity']
+        post_bank_card = request.POST['bank_card']
         post_description = request.POST['description']
         context['message'] = []
         
@@ -216,6 +223,7 @@ def edit_profile(request):
                     context['uu'].username = post_username
                     context['uu'].password = post_password1
                     context['uu'].identity = post_identity
+                    context['uu'].bank_card = post_bank_card
                     context['uu'].description = post_description
                     context['uu'].save()
                     request.session['contact'] = post_contact
@@ -246,10 +254,6 @@ def room_types(request):
             ('g', 'general_user'),
             ('v', 'vip_ueser'),
         )
-        Discount = {
-            'g': 1.0,
-            'v': 0.8,
-        }
         level = context['uu'].level
         for item in context['room_types']:
             item.price *= (item.base_price * Discount[level])
@@ -261,6 +265,36 @@ def room_types(request):
     )
     
     
+def room_type_edit(request, room_type_id):
+    context = get_user_context(request)
+    
+    if context['role'] != 'staff':
+        return HttpResponseRedirect('/')
+    
+    context['room_type'] = get_object_or_404(RoomType, pk=room_type_id)
+    
+    return render(
+        request,
+        'tomato/room_type_edit.html',
+        context,
+    )
+  
+    
+def room_type_detail(request, room_type_id):
+    context = get_user_context(request)
+    
+    if context['role'] != 'staff':
+        return HttpResponseRedirect('/')
+    
+    context['room_type'] = get_object_or_404(RoomType, pk=room_type_id)
+    
+    return render(
+        request,
+        'tomato/room_type_detail.html',
+        context,
+    )
+    
+    
 def room_type_order(request, room_type_id):
     context = get_user_context(request)
     
@@ -268,10 +302,7 @@ def room_type_order(request, room_type_id):
         return HttpResponseRedirect('/')
     
     context['room_type'] = get_object_or_404(RoomType, pk=room_type_id)
-    Discount = {
-        'g': 1.0,
-        'v': 0.8,
-    }
+    
     level = context['uu'].level
     context['room_type'].price *= (context['room_type'].base_price * Discount[level])
     
@@ -292,24 +323,26 @@ def room_type_order(request, room_type_id):
             context['message'].append('Check in time can\'t before check out time!')
         
         if len(context['message']) == 0:
-            new = Order()
-            new.time = datetime.datetime.now()
-            new.check_in_date = context['draft']['check_in_date']
-            new.check_out_date = context['draft']['check_out_date']
-            new.room_type = context['room_type']
-            new.room_number = get_object_or_404(Room, pk=13)
+            context['order'] = Order()
+            context['order'].time = datetime.datetime.now()
+            context['order'].check_in_date = context['draft']['check_in_date']
+            context['order'].check_out_date = context['draft']['check_out_date']
+            context['order'].room_type = context['room_type']
+            context['order'].room_number = get_object_or_404(Room, pk=13)
             
             check_in_day = parse(context['draft']['check_in_date'])
             check_out_day = parse(context['draft']['check_out_date'])
             diff = check_out_day - check_in_day
             
-            new.price = context['room_type'].price * diff.days
+            context['order'].price = context['room_type'].price * diff.days
+            context['order'].bank_card = request.POST['bank_card']
             
             if (check_in_day - datetime.datetime.today()).days > 30:
-                new.price *= 0.7
+                context['order'].price *= 0.75
+                context['order'].state = 'r'
             
-            new.customer = context['uu']
-            new.save()
+            context['order'].customer = context['uu']
+            context['order'].save()
             context['message'].append('Order Successfully!')
             
     return render(
@@ -322,11 +355,103 @@ def room_type_order(request, room_type_id):
 def rooms(request):
     context = get_user_context(request)
     
-    if context['role'] != 'Staff':
+    if context['role'] != 'staff':
         return HttpResponseRedirect('/')
     
     return render(
         request,
         'tomato/rooms.html',
+        context,
+    )
+    
+    
+def my_orders(request):
+    context = get_user_context(request)
+    
+    if context['role'] != 'customer':
+        return HttpResponseRedirect('/')
+    
+    context['all_orders'] = Order.objects.filter(customer_id=context['uu'].id)
+    context['room_types'] = RoomType.objects.all()
+    
+    return render(
+        request,
+        'tomato/my_orders.html',
+        context,
+    )
+    
+    
+def order_detail(request, order_id):
+    context = get_user_context(request)
+    
+    if context['role'] == '':
+        return HttpResponseRedirect('/')
+    
+    context['order'] = get_object_or_404(Order, pk=order_id)
+    
+    if context['role'] == 'customer' and context['uu'].id != context['order'].customer.id:
+        return HttpResponseRedirect('/')
+    
+    return render(
+        request,
+        'tomato/order_detail.html',
+        context,
+    )
+    
+
+def order_change(request, order_id):
+    context = get_user_context(request)
+    
+    context['order'] = get_object_or_404(Order, pk=order_id)
+
+    if context['role'] == '' or context['order'].state == 'f' or context['order'].state == 'c':
+        return HttpResponseRedirect('/')
+    
+    if context['role'] == 'customer' and context['uu'].id != context['order'].customer.id:
+        return HttpResponseRedirect('/')
+    
+    level = context['uu'].level
+    context['order'].room_type.price *= (context['order'].room_type.base_price * Discount[level])
+    
+    context['message'] = []
+    
+    if request.method == 'POST':
+        post_check_in_date = request.POST['check_in_date']
+        post_check_out_date = request.POST['check_out_date']
+        
+        if post_check_in_date < datetime.date.today().strftime('%Y-%m-%d'):
+            context['message'].append('Check in time can\'t before todaty!')
+            
+        if post_check_in_date >= post_check_out_date:
+            context['message'].append('Check in time can\'t before check out time!')
+        
+        if len(context['message']) == 0:
+            
+            # context['order'] = Order()
+            # context['order'].time = datetime.datetime.now()
+            context['order'].check_in_date = post_check_in_date
+            context['order'].check_out_date = post_check_out_date
+            # context['order'].room_type = context['room_type']
+            # context['order'].room_number = get_object_or_404(Room, pk=13)
+            
+            check_in_day = parse(post_check_in_date)
+            check_out_day = parse(post_check_out_date)
+            diff = check_out_day - check_in_day
+            
+            context['order'].price = context['order'].room_type.price * diff.days
+            context['order'].bank_card = request.POST['bank_card']
+            
+            if (check_in_day - datetime.datetime.today()).days > 30:
+                context['order'].price *= 0.75
+                context['order'].state = 'r'
+            
+            # context['order'].customer = context['uu']
+            context['order'].save()
+            
+            context['message'].append('Order Successfully!')
+            
+    return render(
+        request,
+        'tomato/order_change.html',
         context,
     )

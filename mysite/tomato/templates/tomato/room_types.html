@@ -33,11 +33,11 @@
                         {% endif %}
                     </p>
                     {% if role != 'staff' %}
-                        <a href="{% url 'tomato:room_type_order' room_type.id %}" class="btn btn-primary">Order</a>
+                        <a href="{% url 'tomato:room_type_order' room_type.id %}" class="btn btn-primary"><strong>Order</strong></a>
                     {% else %}
-                        <a href="{% url 'tomato:index' %}" class="btn btn-info">Check</a>
+                        <a href="{% url 'tomato:room_type_detail' room_type.id %}" class="btn btn-info"><strong>Detail</strong></a>
                         {% if uu.job == 'm' %}
-                            <a href="{% url 'tomato:index' %}" class="btn btn-primary">Edit</a>
+                            <a href="{% url 'tomato:room_type_edit' room_type.id %}" class="btn btn-primary"><strong>Edit</strong></a>
                         {% endif %}
                     {% endif %}
                 </div>
@@ -45,7 +45,7 @@
         </div>
         {% endfor %}
     {% else %}
-        <p>No rooms</p>
+        <p>Error! No Rooms</p>
     {% endif %}
 </div>
 
