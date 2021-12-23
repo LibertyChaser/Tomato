@@ -40,10 +40,12 @@
                 <td>Name</td>
                 <td><input type="text" class="form-control" name="name" value="{{ uu.name }}"/></td>
             </tr>
+            {% if role == 'customer' %}
             <tr class="align-middle">
                 <td>Username</td>
                 <td><input type="text" class="form-control" name="username" value="{{ uu.username }}"/></td>
             </tr>
+            {% endif %}
             <tr class="align-middle">
                 <td>Password</td>
                 <td><input type="password" class="form-control" name="password1" value="{{ uu.password }}"/></td>
@@ -52,6 +54,7 @@
                 <td>Confirm password</td>
                 <td><input type="password" class="form-control" name="password2" value="{{ uu.password }}"/></td>
             </tr>
+            {% if role == 'customer' %}
             <tr class="align-middle">
                 <td>Identity</td>
                 <td><input type="text" class="form-control" name="identity" value="{{ uu.identity }}"></td>
@@ -68,6 +71,7 @@
                 <td>Level</td>
                 <td>{{ uu.level }}</td>
             </tr>
+            {% endif %}
         </table> 
         <div>
             <button class="btn btn-primary" type="submit">Submit</button>

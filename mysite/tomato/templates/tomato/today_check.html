@@ -65,7 +65,8 @@
                             <a href="{% url 'tomato:order_detail' check_out.id %}">
                                 {{ check_out.customer.name }} -
                                 {{ check_out.room_type.name }} -
-                                Arrive Time: {{ check_out.check_in_date }} 
+                                Arrive Time: {{ check_out.check_in_date }} -
+                                Room Number: {{ check_out.room_number.room_number }}
                             </a>
                         </div>
                     </div>
@@ -89,6 +90,46 @@
         <br>
     </div>
 </div>
-
+<div class="d-grid gap-2">
+    <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseResidentCustomers" role="button" aria-expanded="true" aria-controls="collapseResidentCustomers">
+        <h3 class="h3 text-center">Resident Customers</h3>
+    </a>
+</div>
+<div class="collapse show" id="collapseResidentCustomers">
+    <div class="card card-body">
+        {% if residents %}
+        <ol class="list-group list-group-numbered">
+            {% for resident in residents %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold">
+                            <a href="{% url 'tomato:order_detail' resident.id %}">
+                                Room Number: {{ resident.room_number.room_number }} -
+                                {{ resident.customer.name }} -
+                                {{ resident.room_type.name }} -
+                                Leave Time: {{ resident.check_out_date }}
+                            </a>
+                        </div>
+                    </div>
+                    {% if resident.state == 'i' %}
+                        <span class="badge bg-info rounded-pill">i</span>
+                    {% elif resident.state == 'p' %}
+                        <span class="badge bg-warning rounded-pill">p</span>
+                    {% elif resident.state == 'f' %}
+                        <span class="badge bg-secondary rounded-pill">f</span>
+                    {% elif cresident.state == 'r' %}
+                        <span class="badge bg-success rounded-pill">r</span>
+                    {% elif cresident.state == 'c' %}
+                        <span class="badge bg-danger rounded-pill">c</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+            <p>No Check Out Today.</p>
+        {% endif %}
+        <br>
+    </div>
+</div>
 {% endblock content %}
 

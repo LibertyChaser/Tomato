@@ -8,34 +8,34 @@
 <h1>Overview</h1>
 <br>
 <div class="d-grid gap-2">
-  <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseOrderedRooms" role="button" aria-expanded="true" aria-controls="collapseOrderedRooms">
-      <h2 class="h2 text-center">Ordered Rooms</h2>
+  <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseFigures" role="button" aria-expanded="true" aria-controls="collapseFigures">
+      <h2 class="h2 text-center">Figures</h2>
   </a>
 </div>
-<div class="collapse show" id="collapseOrderedRooms">
+<div class="collapse show" id="collapseFigures">
   <div class="card card-body">
     <canvas id="rooms-chart" data-url="{% url 'tomato:ordered_rooms_stat' %}"></canvas>
-    <table class="table table-borderless align-middle table-hover">
-      <tr><th>Date</th><th>Rooms</th></tr>
-      {% for i in data %}
-      <tr><td>{{i.date}}</td> <td>{{i.rooms}}</td></tr>
-      {% endfor %}
-    </table>
+    <canvas id="revenue-chart" data-url="{% url 'tomato:ordered_rooms_stat' %}"></canvas>
   </div>
 </div>
 <br>
 <div class="d-grid gap-2">
-  <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseRevenueOverview" role="button" aria-expanded="true" aria-controls="collapseRevenueOverview">
-      <h2 class="h2 text-center">Revenue Overview</h2>
+  <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseTables" role="button" aria-expanded="true" aria-controls="collapseTables">
+      <h2 class="h2 text-center">Tables</h2>
   </a>
 </div>
-<div class="collapse show" id="collapseRevenueOverview">
+<div class="collapse show" id="collapseTables">
   <div class="card card-body">
-    <canvas id="revenue-chart" data-url="{% url 'tomato:ordered_rooms_stat' %}"></canvas>
+    <h3 style="text-align: center;">Summary</h3>
     <table class="table table-borderless align-middle table-hover">
-      <tr><th>Date</th><th>Revenue</th></tr>
+      <tr><th>Total Revenue</th><th>Daily Avg Revenue</th><th>Check In Num</th></tr>
+      <tr><td>¥{{ total_revenue }}</td><td>¥{{ avg }}</td><td>{{ total_check_in }}</td></tr>
+    </table>
+    <h3 style="text-align: center;">Details</h3>
+    <table class="table table-borderless align-middle table-hover">
+      <tr><th>Date</th><th>Revenue</th><th>Order Num</th></tr>
       {% for i in data %}
-      <tr><td>{{i.date}}</td> <td>{{i.sum}}</td></tr>
+      <tr><td>{{i.date}}</td> <td>¥{{i.sum}}</td><td>{{i.rooms}}</td></tr>
       {% endfor %}
     </table>
   </div>

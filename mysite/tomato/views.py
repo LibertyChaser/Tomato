@@ -317,29 +317,46 @@ def room_type_order(request, room_type_id):
         context['draft']['check_out_date'] = request.POST['check_out_date']
         
         if context['draft']['check_in_date'] < datetime.date.today().strftime('%Y-%m-%d'):
-            context['message'].append('Check in time can\'t before todaty!')
+            context['message'].append('Check in time can\'t before today!')
             
         if context['draft']['check_in_date'] >= context['draft']['check_out_date']:
             context['message'].append('Check in time can\'t before check out time!')
         
+        if context['draft']['check_in_date'] != '':
+            check_in_day = parse(context['draft']['check_in_date'])
+        else:
+            context['message'].append('Check in date can\'t be empty!')
+            
+        if context['draft']['check_out_date'] != '':
+            check_out_day = parse(context['draft']['check_out_date'])
+        else:
+            context['message'].append('Check in date can\'t be empty!')
+            
+        if len(context['message']) == 0:
+            diff = check_out_day - check_in_day
         
-        check_in_day = parse(context['draft']['check_in_date'])
-        check_out_day = parse(context['draft']['check_out_date'])
-        diff = check_out_day - check_in_day
-        
-        context['order'] = Order()
-        context['order'].price = context['room_type'].price * diff.days
-        context['order'].bank_card = request.POST['bank_card']
-        
-        if (check_in_day - datetime.datetime.today()).days > 30:
-            context['order'].price *= 0.75
-            context['order'].state = 'r'
-            bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
-            if bankcard.balance >= context['order'].price:
-                bankcard.balance -= context['order'].price
-                bankcard.save()
+            context['order'] = Order()
+            context['order'].price = context['room_type'].price * diff.days
+            context['order'].bank_card = request.POST['bank_card']
+            
+            if (check_in_day - datetime.datetime.today()).days > 30:
+                context['order'].price *= 0.75
+                context['order'].state = 'r'
+                try:
+                    bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+                    if bankcard.balance >= context['order'].price:
+                        bankcard.balance -= context['order'].price
+                        bankcard.save()
+                    else:
+                        context['message'].append('Balance Not Enough!')
+                except:
+                    context['message'].append('Bank Card Error!')
             else:
-                context['message'].append('Balance Not Enough!')
+                try:
+                    bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+                except:
+                    context['message'].append('Bank Card Error!')
+                    
             
         if len(context['message']) == 0:
             context['order'].time = datetime.datetime.now()
@@ -410,15 +427,16 @@ def order_cancel(request, order_id):
         check_out_day = context['order'].check_out_date
         diff = check_out_day - check_in_day
         context['order'].price /= diff.days
-        
-        bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
-        if bankcard.balance >= context['order'].price:
-            bankcard.balance -= context['order'].price
-            bankcard.save()
-        else:
-            context['message'].append('Balance Not Enough!')
+        try:
+            bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+            if bankcard.balance >= context['order'].price:
+                bankcard.balance -= context['order'].price
+                bankcard.save()
+            else:
+                context['message'].append('Balance Not Enough!')
+        except:
+            context['message'].append('Bank Card Error!')
 
-    
     context['order'].state = 'c'
     context['order'].save()
             
@@ -458,7 +476,7 @@ def order_change(request, order_id):
     
     context['order'] = get_object_or_404(Order, pk=order_id)
 
-    if context['role'] == '' or context['order'].state == 'f' or context['order'].state == 'c':
+    if context['role'] == '' or context['order'].state == 'f' or context['order'].state == 'c' or context['order'].state == 'i':
         return HttpResponseRedirect('/')
     
     if context['role'] == 'customer' and context['uu'].id != context['order'].customer.id:
@@ -479,22 +497,63 @@ def order_change(request, order_id):
         if post_check_in_date >= post_check_out_date:
             context['message'].append('Check in time can\'t before check out time!')
         
-        if len(context['message']) == 0:
-            
-            context['order'].check_in_date = post_check_in_date
-            context['order'].check_out_date = post_check_out_date
-            
+        if post_check_in_date != '':
             check_in_day = parse(post_check_in_date)
+        else:
+            context['message'].append('Check in date can\'t be empty!')
+            
+        if post_check_out_date != '':
             check_out_day = parse(post_check_out_date)
+        else:
+            context['message'].append('Check in date can\'t be empty!')
+        
+        if len(context['message']) == 0:
             diff = check_out_day - check_in_day
             
-            context['order'].price = context['order'].room_type.price * diff.days
+            new_price = context['order'].room_type.price * diff.days
             context['order'].bank_card = request.POST['bank_card']
             
-            if (check_in_day - datetime.datetime.today()).days > 30:
+            if context['order'].state == 'r':
+                if (check_in_day - datetime.datetime.today()).days > 30:
+                    new_price *= 0.75
+                    if new_price > context['order'].price:
+                        try:
+                            bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+                            if bankcard.balance >= (new_price - context['order'].price):
+                                bankcard.balance -= (new_price - context['order'].price)
+                                bankcard.save()
+                            else:
+                                context['message'].append('Balance Not Enough!')
+                        except:
+                            context['message'].append('Bank Card Error!')
+                else:
+                    try:
+                        bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+                    except:
+                        context['message'].append('Bank Card Error!')
+                    else:
+                        context['order'].state = 'p'
+                
+            elif (check_in_day - datetime.datetime.today()).days > 30:
                 context['order'].price *= 0.75
                 context['order'].state = 'r'
-            
+                try:
+                    bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+                    if bankcard.balance >= context['order'].price:
+                        bankcard.balance -= context['order'].price
+                        bankcard.save()
+                    else:
+                        context['message'].append('Balance Not Enough!')
+                except:
+                    context['message'].append('Bank Card Error!')
+            else:
+                try:
+                    bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+                except:
+                    context['message'].append('Bank Card Error!')
+                
+        if len(context['message']) == 0:
+            context['order'].price = new_price
             context['order'].save()
             
             context['message'].append('Order Successfully!')
@@ -584,8 +643,9 @@ def today_check(request):
     if context['role'] != 'staff':
         return HttpResponseRedirect('/')
     
-    context['all_check_in'] = Order.objects.filter(check_in_date=datetime.date.today().strftime('%Y-%m-%d'))
+    context['all_check_in'] = Order.objects.filter(check_in_date=datetime.date.today().strftime('%Y-%m-%d')).order_by('-customer')
     context['all_check_out'] = Order.objects.filter(check_out_date=datetime.date.today().strftime('%Y-%m-%d'))
+    context['residents'] = Order.objects.filter(state='i').order_by('room_number')
     
     return render(
         request,
@@ -600,13 +660,14 @@ def orders(request):
     if context['uu'].job != 'm':
         return HttpResponseRedirect('/')
     
-    context['orders'] = Order.objects.all()
+    context['orders'] = Order.objects.all().order_by('check_in_date')
     
     return render(
         request,
         'tomato/orders.html',
         context,
     )
+    
     
 def dd():
     today = datetime.date.today()
@@ -635,6 +696,7 @@ def dd():
     
     return cnt, revenue
 
+
 def overview(request):
     context = get_user_context(request)
 
@@ -647,12 +709,15 @@ def overview(request):
     cnt, revenue = dd()
     
     context['data'] = []
-    
+    context['total_revenue'] = context['total_check_in'] = 0
     today = datetime.date.today()
     for val1, val2 in zip(cnt, revenue):
         context['data'].append({'date': today, 'rooms': val1, 'sum': val2})
         today + datetime.timedelta(hours=24) # 第 31 天
-    
+        context['total_revenue'] += val2
+        context['total_check_in'] += val1
+        
+    context['avg'] = context['total_revenue'] / 30
     return render(
         request, 
         'tomato/overview.html',

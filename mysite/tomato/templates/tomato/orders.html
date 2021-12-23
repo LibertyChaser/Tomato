@@ -14,9 +14,10 @@
                 <div class="ms-2 me-auto">
                     <div class="fw-bold">
                         <a href="{% url 'tomato:order_detail' order.id %}">
+                            {{ order.check_in_date}} - 
+                            {{ order.check_out_date }} |
                             {{ order.customer.name }} -
                             {{ order.room_type.name }} -
-                            Leave Time: {{ order.check_out_date }} 
                         </a>
                     </div>
                 </div>
