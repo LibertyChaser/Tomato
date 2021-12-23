@@ -31,4 +31,6 @@ urlpatterns = [
     path('today/check/', views.today_check, name='today_check'),
     
     path('overview/', views.overview, name='overview'),
+    path('ordered_rooms_stat/', views.ordered_rooms_stat, name='ordered_rooms_stat'),
+    
 ]

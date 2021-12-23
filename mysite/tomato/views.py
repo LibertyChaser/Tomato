@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.views.generic import ListView
 import datetime
 from dateutil.parser import parse
-import re
+from django.http import JsonResponse
 
 from .models import *
 
@@ -322,20 +322,26 @@ def room_type_order(request, room_type_id):
         if context['draft']['check_in_date'] >= context['draft']['check_out_date']:
             context['message'].append('Check in time can\'t before check out time!')
         
+        
         check_in_day = parse(context['draft']['check_in_date'])
         check_out_day = parse(context['draft']['check_out_date'])
         diff = check_out_day - check_in_day
         
+        context['order'] = Order()
         context['order'].price = context['room_type'].price * diff.days
         context['order'].bank_card = request.POST['bank_card']
         
         if (check_in_day - datetime.datetime.today()).days > 30:
             context['order'].price *= 0.75
             context['order'].state = 'r'
+            bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+            if bankcard.balance >= context['order'].price:
+                bankcard.balance -= context['order'].price
+                bankcard.save()
+            else:
+                context['message'].append('Balance Not Enough!')
             
-        
         if len(context['message']) == 0:
-            context['order'] = Order()
             context['order'].time = datetime.datetime.now()
             context['order'].check_in_date = context['draft']['check_in_date']
             context['order'].check_out_date = context['draft']['check_out_date']
@@ -395,13 +401,23 @@ def order_cancel(request, order_id):
     if context['role'] == 'customer' and context['uu'].id != context['order'].customer.id:
         return HttpResponseRedirect('/')
     
+    context['message'] = []
+    
     check_in_day = context['order'].check_in_date
     
-    if context['order'].state != 'r' and (check_in_day - datetime.datetime.today()).days >= 3:
+    if context['order'].state != 'r' and (check_in_day - datetime.date.today()).days >= 3:
     
-        check_out_day = parse(context['order'].check_out_date)
+        check_out_day = context['order'].check_out_date
         diff = check_out_day - check_in_day
         context['order'].price /= diff.days
+        
+        bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+        if bankcard.balance >= context['order'].price:
+            bankcard.balance -= context['order'].price
+            bankcard.save()
+        else:
+            context['message'].append('Balance Not Enough!')
+
     
     context['order'].state = 'c'
     context['order'].save()
@@ -535,15 +551,26 @@ def order_check_out(request, order_id):
         return HttpResponseRedirect('/')
     
     context['flag'] = 'check_out'
-    room = get_object_or_404(Room, pk=context['order'].room_number.id)
-    room.available = 'a'
-    room.save()
-    
-    context['order'].state = 'f'
-    context['order'].save()
     
     context['message'] = []
-    context['message'].append('Check Out Successfully!')
+        
+    bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+    if bankcard.balance >= context['order'].price:
+        bankcard.balance -= context['order'].price
+        bankcard.save()
+    else:
+        context['message'].append('Balance Not Enough!')
+    
+    if len(context['message']) == 0:
+        room = get_object_or_404(Room, pk=context['order'].room_number.id)
+        room.available = 'a'
+        room.save()
+    
+        context['order'].state = 'f'
+        context['order'].save()
+        
+        context['message'] = []
+        context['message'].append('Check Out Successfully!')
             
     return HttpResponseRedirect('/today/check/')
     
@@ -581,8 +608,73 @@ def orders(request):
         context,
     )
     
+def dd():
+    today = datetime.date.today()
+    final = today + datetime.timedelta(hours=30*24) # 第 31 天
+    orders = Order.objects.exclude(state='c').filter(check_out_date__gt=today, check_in_date__lte=final)
     
+    cnt = [0] * (30 + 1)
+    revenue = [0] * (30 + 1)
+    
+    for order in orders:
+        a = (order.check_in_date - today).days
+        if a < 0:
+            a = 0
+        b = (order.check_out_date - today).days
+        if b > 30:
+            b = 30
+        cnt[a] += 1  # 前缀和
+        cnt[b] -= 1  # 前缀和
+        avg_price = order.price / order.days()
+        revenue[a] += avg_price
+        revenue[b] -= avg_price
+    
+    for i in range(1, len(cnt)):
+        cnt[i] += cnt[i - 1]
+        revenue[i] += revenue[i - 1]
+    
+    return cnt, revenue
+
 def overview(request):
-    pass
+    context = get_user_context(request)
+
+    if context['role'] == '':
+        return HttpResponseRedirect('/')
     
+    if context['role'] != 'staff':
+        return HttpResponseRedirect('/')
     
+    cnt, revenue = dd()
+    
+    context['data'] = []
+    
+    today = datetime.date.today()
+    for val1, val2 in zip(cnt, revenue):
+        context['data'].append({'date': today, 'rooms': val1, 'sum': val2})
+        today + datetime.timedelta(hours=24) # 第 31 天
+    
+    return render(
+        request, 
+        'tomato/overview.html',
+        context,
+    )
+
+
+# map to '/ordered_rooms_stat/' with name 'ordered_rooms_stat'
+def ordered_rooms_stat(request):
+    # 查询未来 30 天内会入住或者正在入住的订单
+    context = get_user_context(request)
+
+    if context['role'] == '':
+        return HttpResponseRedirect('/')
+    
+    if context['uu'].job != 'm':
+        return HttpResponseRedirect('/')
+    
+    cnt, revenue = dd()
+    
+    return JsonResponse(data={
+        'labels': [i for i in range(30)],
+        'cnt': cnt[0:-1],
+        'revenue': revenue[0:-1],
+    })

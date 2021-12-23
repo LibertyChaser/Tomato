@@ -115,6 +115,9 @@ class Order(models.Model):
         default='p',
     )
     
+    def days(self):
+        return (self.check_out_date - self.check_in_date).days
+    
     def __str__(self):
         return "{} {} - {} price:{}".format(
             self.customer,
@@ -129,7 +132,7 @@ class BankCard(models.Model):
     balance = models.IntegerField(default=2000)
 
     def __str__(self):
-        return "Card ID:{} {} Balance:{}".format(
+        return "Card ID:{} Balance:{}".format(
             self.card_id,
             self.balance, 
         )

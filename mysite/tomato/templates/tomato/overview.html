@@ -1,0 +1,110 @@
+{% extends "tomato/base_generic.html" %}
+
+{% block title %}
+    <title> Overview - Tomato </title>
+{% endblock %}
+
+{% block content %}
+<h1>Overview</h1>
+<br>
+<div class="d-grid gap-2">
+  <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseOrderedRooms" role="button" aria-expanded="true" aria-controls="collapseOrderedRooms">
+      <h2 class="h2 text-center">Ordered Rooms</h2>
+  </a>
+</div>
+<div class="collapse show" id="collapseOrderedRooms">
+  <div class="card card-body">
+    <canvas id="rooms-chart" data-url="{% url 'tomato:ordered_rooms_stat' %}"></canvas>
+    <table class="table table-borderless align-middle table-hover">
+      <tr><th>Date</th><th>Rooms</th></tr>
+      {% for i in data %}
+      <tr><td>{{i.date}}</td> <td>{{i.rooms}}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+<br>
+<div class="d-grid gap-2">
+  <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseRevenueOverview" role="button" aria-expanded="true" aria-controls="collapseRevenueOverview">
+      <h2 class="h2 text-center">Revenue Overview</h2>
+  </a>
+</div>
+<div class="collapse show" id="collapseRevenueOverview">
+  <div class="card card-body">
+    <canvas id="revenue-chart" data-url="{% url 'tomato:ordered_rooms_stat' %}"></canvas>
+    <table class="table table-borderless align-middle table-hover">
+      <tr><th>Date</th><th>Revenue</th></tr>
+      {% for i in data %}
+      <tr><td>{{i.date}}</td> <td>{{i.sum}}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+  <script>
+
+    $(function () {
+
+      var $roomsChart = $("#rooms-chart");
+      var $revenueChart = $("#revenue-chart");
+      $.ajax({
+        url: $roomsChart.data("url"),
+        success: function (data) {
+
+          var ctx1 = $roomsChart[0].getContext("2d");
+          var ctx2 = $revenueChart[0].getContext("2d");
+
+          new Chart(ctx1, {
+            type: 'bar',
+            data: {
+              labels: data.labels,
+              datasets: [{
+                label: 'Ordered Rooms',
+                backgroundColor: 'blue',
+                data: data.cnt
+              }]          
+            },
+            options: {
+              responsive: true,
+              legend: {
+                position: 'top',
+              },
+              title: {
+                display: true,
+                text: 'Occupancy in 30 days Bar Chart'
+              }
+            }
+          });
+          new Chart(ctx2, {
+            type: 'bar',
+            data: {
+              labels: data.labels,
+              datasets: [{
+                label: 'Revenue',
+                backgroundColor: 'blue',
+                data: data.revenue
+              }]          
+            },
+            options: {
+              responsive: true,
+              legend: {
+                position: 'top',
+              },
+              title: {
+                display: true,
+                text: 'Revenue in 30 days Bar Chart'
+              }
+            }
+          });
+
+        }
+      });
+
+    });
+
+  </script>
+
+{% endblock content %}
+
