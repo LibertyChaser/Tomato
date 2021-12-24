@@ -90,7 +90,18 @@ class Room(models.Model):
             self.max_guest_num,
             self.available
         )
+
+
+class Resident(models.Model):
+    resident_id = models.CharField(max_length=64)
+    name = models.CharField(max_length=64)
     
+    def __str__(self):
+        return "{} {}".format(
+            self.resident_id,
+            self.name,
+        )
+        
     
 class Order(models.Model):
     State = (
@@ -107,8 +118,8 @@ class Order(models.Model):
     room_number = models.ForeignKey(Room, on_delete=models.CASCADE)
     price = models.IntegerField()
     bank_card = models.IntegerField(default=0)
-    # creator = models.ForeignKey(Customer, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    resident = models.ForeignKey(Resident, on_delete=models.CASCADE)
     state = models.CharField(
         max_length=1,
         choices=State,
@@ -132,9 +143,22 @@ class BankCard(models.Model):
     balance = models.IntegerField(default=2000)
 
     def __str__(self):
-        return "Card ID:{} Balance:{}".format(
+        return "Card ID: {} Balance: {}".format(
             self.card_id,
             self.balance, 
         )
         
         
+class BasePriceManege(models.Model):
+    start_date = models.DateField()
+    end_date = models.DateField()
+    room_type = models.ForeignKey(RoomType, on_delete=models.CASCADE)
+    ratio = models.DecimalField(decimal_places=4, max_digits=5)
+    
+    def __str__(self):
+        return "Ratio: {}, RoomType: {}, From {} to {} ".format(
+            self.ratio,
+            self.room_type.name,
+            self.start_date,
+            self.end_date,
+        )

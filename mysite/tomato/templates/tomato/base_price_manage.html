@@ -1,0 +1,45 @@
+{% extends "tomato/base_generic.html" %}
+
+{% block title %}
+    <title> Base Price Mangement - Tomato </title>
+{% endblock title %}
+
+{% block content %}
+
+{% csrf_token %}
+
+<h1 class="h1">Base Price Mangement</h1>
+<br>
+<div class="d-grid gap-2">
+    <a class="btn btn-dark" data-bs-toggle="collapse" href="#collapseDetail" role="button" aria-expanded="true" aria-controls="collapseDetail">
+        <h2 class="h2 text-center">Detail</h2>
+    </a>
+</div>
+<div class="collapse show" id="collapseDetail">
+    <div class="card card-body">
+        <div class="list-group list-group-numbered">
+            {% for p in base_prices %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold">
+                            <a href="{% url 'tomato:index' %}">
+                                {{ p.start_date}} - 
+                                {{ p.end_date }} |
+                                {{ p.ratio }} -
+                                {{ p.room_type.name }}
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+            <a class="btn btn-outline-success" href="{% url 'tomato:base_price_manage_add' %}"><i class="bi bi-plus-lg"></i></a>
+        </div>
+
+        <br>
+    </div>
+</div>
+<br>
+
+
+
+{% endblock content %}

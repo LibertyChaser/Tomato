@@ -250,12 +250,13 @@ def room_types(request):
     context['room_types'] = RoomType.objects.all()
     
     if context['role'] == 'customer':
-        Level = (
-            ('g', 'general_user'),
-            ('v', 'vip_ueser'),
-        )
+        # Level = (
+        #     ('g', 'general_user'),
+        #     ('v', 'vip_ueser'),
+        # )
         level = context['uu'].level
         for item in context['room_types']:
+            item.base_price *= get_ratio(item)
             item.price *= (item.base_price * Discount[level])
     
     return render(
@@ -304,6 +305,7 @@ def room_type_order(request, room_type_id):
     context['room_type'] = get_object_or_404(RoomType, pk=room_type_id)
     
     level = context['uu'].level
+    
     context['room_type'].price *= (context['room_type'].base_price * Discount[level])
     
     if context['role'] != 'customer':
@@ -320,7 +322,7 @@ def room_type_order(request, room_type_id):
             context['message'].append('Check in time can\'t before today!')
             
         if context['draft']['check_in_date'] >= context['draft']['check_out_date']:
-            context['message'].append('Check in time can\'t before check out time!')
+            context['message'].append('Check out date can\'t before check in time!')
         
         if context['draft']['check_in_date'] != '':
             check_in_day = parse(context['draft']['check_in_date'])
@@ -330,7 +332,7 @@ def room_type_order(request, room_type_id):
         if context['draft']['check_out_date'] != '':
             check_out_day = parse(context['draft']['check_out_date'])
         else:
-            context['message'].append('Check in date can\'t be empty!')
+            context['message'].append('Check out date can\'t be empty!')
             
         if len(context['message']) == 0:
             diff = check_out_day - check_in_day
@@ -338,6 +340,8 @@ def room_type_order(request, room_type_id):
             context['order'] = Order()
             context['order'].price = context['room_type'].price * diff.days
             context['order'].bank_card = request.POST['bank_card']
+            
+            context['order'].price *= get_ratio(context['room_type'], context['draft']['check_in_date'])
             
             if (check_in_day - datetime.datetime.today()).days > 30:
                 context['order'].price *= 0.75
@@ -423,7 +427,6 @@ def order_cancel(request, order_id):
     check_in_day = context['order'].check_in_date
     
     if context['order'].state != 'r' and (check_in_day - datetime.date.today()).days >= 3:
-    
         check_out_day = context['order'].check_out_date
         diff = check_out_day - check_in_day
         context['order'].price /= diff.days
@@ -436,13 +439,24 @@ def order_cancel(request, order_id):
                 context['message'].append('Balance Not Enough!')
         except:
             context['message'].append('Bank Card Error!')
+    elif context['order'].state != 'r' and (check_in_day - datetime.date.today()).days < 3:
+        try:
+            bankcard = get_object_or_404(BankCard, card_id=context['order'].bank_card)
+            if bankcard.balance >= context['order'].price:
+                bankcard.balance -= context['order'].price
+                bankcard.save()
+            else:
+                context['message'].append('Balance Not Enough!')
+        except:
+            context['message'].append('Bank Card Error!')
+    
 
     context['order'].state = 'c'
     context['order'].save()
             
     return render(
         request,
-        'tomato/order_change.html',
+        'tomato/order_detail.html',
         context,
     )
 
@@ -510,7 +524,7 @@ def order_change(request, order_id):
         if len(context['message']) == 0:
             diff = check_out_day - check_in_day
             
-            new_price = context['order'].room_type.price * diff.days
+            new_price = context['order'].room_type.price * diff.days * get_ratio(context['order'].room_type, post_check_in_date)
             context['order'].bank_card = request.POST['bank_card']
             
             if context['order'].state == 'r':
@@ -553,6 +567,8 @@ def order_change(request, order_id):
                     context['message'].append('Bank Card Error!')
                 
         if len(context['message']) == 0:
+            context['order'].check_in_date = check_in_day
+            context['order'].check_out_date = check_out_day
             context['order'].price = new_price
             context['order'].save()
             
@@ -576,9 +592,19 @@ def order_check_in(request, order_id):
     if context['role'] != 'staff':
         return HttpResponseRedirect('/')
     
+    context['message'] = []
     context['room_choices'] = Room.objects.filter(available='a', room_type=context['order'].room_type)
     
     if request.method == 'POST':
+        resident_id = request.POST['resident_id']
+        if resident_id != context['order'].customer.identity:
+            try:
+                context['order'].resident = get_object_or_404(Resident, resident_id=resident_id)
+            except:
+                context['message'].append('Resident ID Error!')
+    
+    if request.method == 'POST' and len(context['message']) == 0:
+        
         room_choice = request.POST['check_in_room']
         room = get_object_or_404(Room, pk=room_choice)
         room.available = 'b'
@@ -700,10 +726,7 @@ def dd():
 def overview(request):
     context = get_user_context(request)
 
-    if context['role'] == '':
-        return HttpResponseRedirect('/')
-    
-    if context['role'] != 'staff':
+    if context['uu'].job != 'm':
         return HttpResponseRedirect('/')
     
     cnt, revenue = dd()
@@ -713,7 +736,7 @@ def overview(request):
     today = datetime.date.today()
     for val1, val2 in zip(cnt, revenue):
         context['data'].append({'date': today, 'rooms': val1, 'sum': val2})
-        today + datetime.timedelta(hours=24) # 第 31 天
+        today += datetime.timedelta(hours=24) # 第 31 天
         context['total_revenue'] += val2
         context['total_check_in'] += val1
         
@@ -743,3 +766,90 @@ def ordered_rooms_stat(request):
         'cnt': cnt[0:-1],
         'revenue': revenue[0:-1],
     })
+
+
+def get_ratio(room_type=None, date=None):
+    if room_type is None:
+        return 1
+    
+    if date is None:
+        date = datetime.date.today()
+    
+    output = BasePriceManege.objects.filter(start_date__lte=date, end_date__gt=date, room_type=room_type)
+    # output = get_object_or_404(BasePriceManege ,start_date__gte=date, end_date__lt=date, room_type=room_type)
+    
+    if len(output) == 0:
+        return 1
+    
+    else:
+        return float(output[0].ratio)
+
+
+
+def base_price_manage(request):
+    context = get_user_context(request)
+    
+    if context['uu'].job != 'm':
+        return HttpResponseRedirect('/')
+    
+    context['base_prices'] = BasePriceManege.objects.all().order_by('room_type')
+    
+    return render(
+        request,
+        'tomato/base_price_manage.html',
+        context,
+    )
+
+
+def base_price_manage_add(request):
+    context = get_user_context(request)
+    
+    if context['uu'].job != 'm':
+        return HttpResponseRedirect('/')
+    
+    context['room_types'] = RoomType.objects.all()
+    
+    context['draft'] = {}
+    context['message'] = []
+    
+    if request.method == 'POST':
+        context['draft']['start_date'] = request.POST['start_date']
+        context['draft']['end_date'] = request.POST['end_date']
+        
+        if context['draft']['start_date'] < datetime.date.today().strftime('%Y-%m-%d'):
+            context['message'].append('Start date can\'t before today!')
+            
+        if context['draft']['start_date'] >= context['draft']['end_date']:
+            context['message'].append('End date can\'t before start date!')
+        
+        if context['draft']['start_date'] != '':
+            start_date = parse(context['draft']['start_date'])
+        else:
+            context['message'].append('Start date can\'t be empty!')
+            
+        if context['draft']['end_date'] != '':
+            end_date = parse(context['draft']['end_date'])
+        else:
+            context['message'].append('End date can\'t be empty!')
+        
+        ratio = request.POST['ratio']
+        if ratio == '':
+            context['message'].append('Ratio can\'t be zero!')
+            
+        if len(context['message']) == 0:
+            new = BasePriceManege()
+            new.start_date = start_date
+            new.end_date = end_date
+            new.room_type = get_object_or_404(RoomType, pk=request.POST['room_type'])
+            new.ratio = ratio
+            
+            new.save()
+            context['message'].append('Add Management Successfully!')
+    
+    return render(
+        request,
+        'tomato/base_price_manage_add.html',
+        context,
+    )
+    
+    

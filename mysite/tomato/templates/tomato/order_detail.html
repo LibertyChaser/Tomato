@@ -47,6 +47,14 @@
             <td>{{ order.customer.name }}</td>
         </tr>
         <tr>
+            <td class="h5">Resident</td>
+            {% if order.resident.name == '1' %}
+            <td>{{ order.customer.name }}</td>
+            {% else %}
+            <td>{{ order.resident.name }}</td>
+            {% endif %}
+        </tr>
+        <tr>
             <td class="h5">State</td>
             {% if order.state == 'p' %}
               <td>In Progress</td>

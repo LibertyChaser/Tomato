@@ -32,5 +32,7 @@ urlpatterns = [
     
     path('overview/', views.overview, name='overview'),
     path('ordered_rooms_stat/', views.ordered_rooms_stat, name='ordered_rooms_stat'),
+    path('base_price_manage/', views.base_price_manage, name='base_price_manage'),
+    path('base_price_manage/add/', views.base_price_manage_add, name='base_price_manage_add'),
     
 ]

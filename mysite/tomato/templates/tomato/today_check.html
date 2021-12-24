@@ -20,12 +20,21 @@
                 <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div class="ms-2 me-auto">
                         <div class="fw-bold">
+                            {% if check_in.resident.name == '1' %}
                             <a href="{% url 'tomato:order_detail' check_in.id %}">
                                 {{ check_in.customer.name }} -
                                 {{ check_in.room_type.name }} -
                                 Leave Time: {{ check_in.check_out_date }} -
                                 Room Number: {{ check_in.room_number.room_number }}
                             </a>
+                            {% else %}
+                            <a href="{% url 'tomato:order_detail' check_in.id %}">
+                                {{ check_in.resident.name }} -
+                                {{ check_in.room_type.name }} -
+                                Leave Time: {{ check_in.check_out_date }} -
+                                Room Number: {{ check_in.room_number.room_number }}
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                     {% if check_in.state == 'i' %}
@@ -103,12 +112,21 @@
                 <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div class="ms-2 me-auto">
                         <div class="fw-bold">
+                            {% if resident.resident.name == '1' %}
                             <a href="{% url 'tomato:order_detail' resident.id %}">
                                 Room Number: {{ resident.room_number.room_number }} -
                                 {{ resident.customer.name }} -
                                 {{ resident.room_type.name }} -
                                 Leave Time: {{ resident.check_out_date }}
                             </a>
+                            {% else %}
+                            <a href="{% url 'tomato:order_detail' resident.id %}">
+                                Room Number: {{ resident.room_number.room_number }} -
+                                {{ resident.resident.name }} -
+                                {{ resident.room_type.name }} -
+                                Leave Time: {{ resident.check_out_date }}
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                     {% if resident.state == 'i' %}

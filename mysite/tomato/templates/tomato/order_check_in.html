@@ -55,6 +55,10 @@
                 <td>{{ order.bank_card }}</td>
             </tr>
             <tr class="align-middle">
+                <td>Resident ID</td>
+                <td><input type="text" class="form-control" name="resident_id" value="{{ order.customer.identity }}"></td>
+            </tr>
+            <tr class="align-middle">
                 <td>Room Number</td>
                 <td>            
                     <select class="form-select" name="check_in_room">

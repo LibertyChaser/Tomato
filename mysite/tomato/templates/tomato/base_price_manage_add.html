@@ -1,0 +1,57 @@
+{% extends "tomato/base_generic.html" %}
+
+{% block title %}
+    <title> Base Price Management Add - Tomato </title>
+{% endblock title %}
+
+{% block content %}
+
+<form action="{% url 'tomato:base_price_manage_add' %}" method="post">
+{% csrf_token %}
+<fieldset>
+    <h1 class="h1">Base Price Management Add</h1>
+    {% if message %}
+        {% for msg in message %}
+            {% if 'Successfully' not in msg %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i><strong> {{ msg }}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% else %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill"></i><strong> {{ msg }}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    <table class="table table-hover table-sm align-middle table-light">
+        <thead></thead>
+        <tr class="align-middle">
+            <td>Start Date</td>
+            <td><input class="form-control" type="date" name="start_date" value="{{ draft.start_date }}"></td>
+        </tr>
+        <tr class="align-middle">
+            <td>End Date</td>
+            <td><input class="form-control" type="date" name="end_date" value="{{ draft.end_date }}"></td>
+        </tr>
+        <tr class="align-middle">
+            <td>Room Type:</td>
+            <td>
+                <select class="form-select" name="room_type">
+                    {% for room_type in room_types %}
+                        <option value="{{room_type.id}}">{{room_type.name}}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr class="align-middle">
+            <td>Ratio</td>
+            <td><input class="form-control" type="text" name="ratio" value="{{ draft.ratio }}"></td>
+        </tr>
+    </table>
+    <button class="btn btn-success" type="submit">Add Management</button>
+</fieldset>
+</form>
+
+{% endblock content %}
