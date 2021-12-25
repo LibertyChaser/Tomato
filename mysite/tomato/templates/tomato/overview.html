@@ -33,9 +33,9 @@
     </table>
     <h3 style="text-align: center;">Details</h3>
     <table class="table table-borderless align-middle table-hover">
-      <tr><th>Date</th><th>Revenue</th><th>Order Num</th></tr>
+      <tr><th>Date</th><th>All Orders Num</th><th>Revenue</th><th>Reservation Num</th></tr>
       {% for i in data %}
-      <tr><td>{{i.date}}</td> <td>¥{{i.sum}}</td><td>{{i.rooms}}</td></tr>
+      <tr><td>{{i.date}}</td><td>{{i.all_orders}}</td><td>¥{{i.all_revenue}}</td><td>{{i.r_orders}}</td></tr>
       {% endfor %}
     </table>
   </div>
@@ -74,7 +74,14 @@
               title: {
                 display: true,
                 text: 'Occupancy in 30 days Bar Chart'
-              }
+              },
+              scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+              },
             }
           });
           new Chart(ctx2, {
@@ -95,6 +102,13 @@
               title: {
                 display: true,
                 text: 'Revenue in 30 days Bar Chart'
+              },
+              scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }],
               }
             }
           });

@@ -699,8 +699,10 @@ def dd():
     today = datetime.date.today()
     final = today + datetime.timedelta(hours=30*24) # 第 31 天
     orders = Order.objects.exclude(state='c').filter(check_out_date__gt=today, check_in_date__lte=final)
+    orders_r = Order.objects.filter(check_out_date__gt=today, check_in_date__lte=final, state='r')
     
     cnt = [0] * (30 + 1)
+    cnt_r = [0] * (30 + 1)
     revenue = [0] * (30 + 1)
     
     for order in orders:
@@ -716,11 +718,23 @@ def dd():
         revenue[a] += avg_price
         revenue[b] -= avg_price
     
+    for order in orders_r:
+        a = (order.check_in_date - today).days
+        if a < 0:
+            a = 0
+        b = (order.check_out_date - today).days
+        if b > 30:
+            b = 30
+        cnt_r[a] += 1  # 前缀和
+        cnt_r[b] -= 1  # 前缀和
+    
     for i in range(1, len(cnt)):
         cnt[i] += cnt[i - 1]
+        cnt_r[i] += cnt_r[i - 1]
         revenue[i] += revenue[i - 1]
+        revenue[i] = float(format(revenue[i], '.1f'))
     
-    return cnt, revenue
+    return cnt, revenue, cnt_r
 
 
 def overview(request):
@@ -729,18 +743,26 @@ def overview(request):
     if context['uu'].job != 'm':
         return HttpResponseRedirect('/')
     
-    cnt, revenue = dd()
+    cnt, revenue, cnt_r = dd()
     
     context['data'] = []
     context['total_revenue'] = context['total_check_in'] = 0
     today = datetime.date.today()
-    for val1, val2 in zip(cnt, revenue):
-        context['data'].append({'date': today, 'rooms': val1, 'sum': val2})
+    
+    for val1, val2, val3 in zip(cnt, revenue, cnt_r):
+        context['data'].append(
+            {'date': today, 
+             'all_orders': val1, 
+             'all_revenue': val2,
+             'r_orders': val3,
+            })
         today += datetime.timedelta(hours=24) # 第 31 天
         context['total_revenue'] += val2
         context['total_check_in'] += val1
         
-    context['avg'] = context['total_revenue'] / 30
+    context['avg'] = round(context['total_revenue'] / 30, 1)
+    context['total_revenue'] = round(context['total_revenue'], 1)
+    
     return render(
         request, 
         'tomato/overview.html',
@@ -759,11 +781,12 @@ def ordered_rooms_stat(request):
     if context['uu'].job != 'm':
         return HttpResponseRedirect('/')
     
-    cnt, revenue = dd()
+    cnt, revenue, cnt_r = dd()
     
     return JsonResponse(data={
         'labels': [i for i in range(30)],
         'cnt': cnt[0:-1],
+        # 'cnt_r': cnt_r[0:-1],
         'revenue': revenue[0:-1],
     })
 

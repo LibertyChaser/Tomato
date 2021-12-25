@@ -130,11 +130,12 @@ class Order(models.Model):
         return (self.check_out_date - self.check_in_date).days
     
     def __str__(self):
-        return "{} {} - {} price:{}".format(
+        return "{} {} - {} price:{} state:{}".format(
             self.customer,
             self.check_in_date, 
             self.check_out_date, 
             self.price,
+            self.state,
         )
 
 
